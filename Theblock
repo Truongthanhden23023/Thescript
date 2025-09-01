@@ -1,0 +1,95 @@
+-- UI Nova Move + Auto Play Beat Hits Normal + Anti AFK + Anti Kick + TP CFrame
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local ToggleNormal = Instance.new("TextButton")
+local AntiKickBtn = Instance.new("TextButton")
+local TPBtn = Instance.new("TextButton")
+local UIS = game:GetService("UserInputService")
+local vInput = game:GetService("VirtualInputManager")
+local vu = game:GetService("VirtualUser")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+ScreenGui.Parent = game.CoreGui
+
+-- Frame UI
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.Size = UDim2.new(0,220,0,160)
+Frame.Position = UDim2.new(0.3,0,0.3,0)
+Frame.Active = true
+Frame.Draggable = true -- Nova Move
+
+-- Toggle Normal
+ToggleNormal.Parent = Frame
+ToggleNormal.Size = UDim2.new(0,200,0,40)
+ToggleNormal.Position = UDim2.new(0,10,0,10)
+ToggleNormal.Text = "Auto Beat Hits Normal: OFF"
+ToggleNormal.BackgroundColor3 = Color3.fromRGB(50,50,50)
+ToggleNormal.TextColor3 = Color3.fromRGB(255,255,255)
+
+-- Anti Kick Button
+AntiKickBtn.Parent = Frame
+AntiKickBtn.Size = UDim2.new(0,200,0,40)
+AntiKickBtn.Position = UDim2.new(0,10,0,60)
+AntiKickBtn.Text = "Anti Kick: OFF"
+AntiKickBtn.BackgroundColor3 = Color3.fromRGB(80,20,20)
+AntiKickBtn.TextColor3 = Color3.fromRGB(255,255,255)
+
+-- TP Button
+TPBtn.Parent = Frame
+TPBtn.Size = UDim2.new(0,200,0,40)
+TPBtn.Position = UDim2.new(0,10,0,110)
+TPBtn.Text = "TP CFrame"
+TPBtn.BackgroundColor3 = Color3.fromRGB(20,80,20)
+TPBtn.TextColor3 = Color3.fromRGB(255,255,255)
+
+-- Biến trạng thái
+local autoNormal = false
+local antiKick = false
+
+-- Hàm click nút tim góc phải
+local function clickHeart()
+    local cam = workspace.CurrentCamera
+    local screen = cam.ViewportSize
+    local x = screen.X - 70   -- lệch phải
+    local y = screen.Y - 120  -- lệch dưới
+    vInput:SendMouseButtonEvent(x, y, 0, true, game, 1)
+    task.wait(0.05)
+    vInput:SendMouseButtonEvent(x, y, 0, false, game, 1)
+end
+
+-- Toggle Normal
+ToggleNormal.MouseButton1Click:Connect(function()
+    autoNormal = not autoNormal
+    ToggleNormal.Text = autoNormal and "Auto Beat Hits Normal: ON" or "Auto Beat Hits Normal: OFF"
+    if autoNormal then
+        spawn(function()
+            while autoNormal do
+                clickHeart()
+                task.wait(0.2) -- tốc độ bình thường
+            end
+        end)
+    end
+end)
+
+-- Anti Kick
+AntiKickBtn.MouseButton1Click:Connect(function()
+    antiKick = not antiKick
+    AntiKickBtn.Text = antiKick and "Anti Kick: ON" or "Anti Kick: OFF"
+    if antiKick then
+        LocalPlayer.Idled:Connect(function()
+            vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+        end)
+    end
+end)
+
+-- TP CFrame
+TPBtn.MouseButton1Click:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame =
+            CFrame.new(189.010727, -11.9921074, 153.321777, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+    end
+end)
