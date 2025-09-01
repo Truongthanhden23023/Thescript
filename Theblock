@@ -1,95 +1,139 @@
--- UI Nova Move + Auto Play Beat Hits Normal + Anti AFK + Anti Kick + TP CFrame
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local ToggleNormal = Instance.new("TextButton")
-local AntiKickBtn = Instance.new("TextButton")
-local TPBtn = Instance.new("TextButton")
-local UIS = game:GetService("UserInputService")
-local vInput = game:GetService("VirtualInputManager")
-local vu = game:GetService("VirtualUser")
+-- UI Nova Move + Auto Beat Hits Fix No Miss + TP + AntiKick + AntiAFK + Remove Loading + Fix Lag
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local vInput = game:GetService("VirtualInputManager")
+local UIS = game:GetService("UserInputService")
 
-ScreenGui.Parent = game.CoreGui
-
--- Frame UI
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Frame.Size = UDim2.new(0,220,0,160)
-Frame.Position = UDim2.new(0.3,0,0.3,0)
-Frame.Active = true
-Frame.Draggable = true -- Nova Move
-
--- Toggle Normal
-ToggleNormal.Parent = Frame
-ToggleNormal.Size = UDim2.new(0,200,0,40)
-ToggleNormal.Position = UDim2.new(0,10,0,10)
-ToggleNormal.Text = "Auto Beat Hits Normal: OFF"
-ToggleNormal.BackgroundColor3 = Color3.fromRGB(50,50,50)
-ToggleNormal.TextColor3 = Color3.fromRGB(255,255,255)
-
--- Anti Kick Button
-AntiKickBtn.Parent = Frame
-AntiKickBtn.Size = UDim2.new(0,200,0,40)
-AntiKickBtn.Position = UDim2.new(0,10,0,60)
-AntiKickBtn.Text = "Anti Kick: OFF"
-AntiKickBtn.BackgroundColor3 = Color3.fromRGB(80,20,20)
-AntiKickBtn.TextColor3 = Color3.fromRGB(255,255,255)
-
--- TP Button
-TPBtn.Parent = Frame
-TPBtn.Size = UDim2.new(0,200,0,40)
-TPBtn.Position = UDim2.new(0,10,0,110)
-TPBtn.Text = "TP CFrame"
-TPBtn.BackgroundColor3 = Color3.fromRGB(20,80,20)
-TPBtn.TextColor3 = Color3.fromRGB(255,255,255)
-
--- Biến trạng thái
-local autoNormal = false
-local antiKick = false
-
--- Hàm click nút tim góc phải
-local function clickHeart()
-    local cam = workspace.CurrentCamera
-    local screen = cam.ViewportSize
-    local x = screen.X - 70   -- lệch phải
-    local y = screen.Y - 120  -- lệch dưới
-    vInput:SendMouseButtonEvent(x, y, 0, true, game, 1)
-    task.wait(0.05)
-    vInput:SendMouseButtonEvent(x, y, 0, false, game, 1)
+-- Xóa UI cũ nếu có
+if game.CoreGui:FindFirstChild("NovaUI") then
+    game.CoreGui:FindFirstChild("NovaUI"):Destroy()
 end
 
--- Toggle Normal
-ToggleNormal.MouseButton1Click:Connect(function()
-    autoNormal = not autoNormal
-    ToggleNormal.Text = autoNormal and "Auto Beat Hits Normal: ON" or "Auto Beat Hits Normal: OFF"
-    if autoNormal then
-        spawn(function()
-            while autoNormal do
-                clickHeart()
-                task.wait(0.2) -- tốc độ bình thường
-            end
-        end)
-    end
+-- Tạo GUI chính
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NovaUI"
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.Size = UDim2.new(0,220,0,280)
+Frame.Position = UDim2.new(0.3,0,0.3,0)
+Frame.Active = true
+Frame.Draggable = true
+
+-- Tạo nút helper
+local function CreateButton(name, text, y)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Frame
+    btn.Size = UDim2.new(0,200,0,40)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = text
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Name = name
+    return btn
+end
+
+-- Các nút
+local AutoBtn = CreateButton("AutoBtn","Auto Beat Hits: OFF",10)
+local TPBtn = CreateButton("TPBtn","Teleport",60)
+local RemoveBtn = CreateButton("RemoveBtn","Remove Loading",110)
+local AntiKickBtn = CreateButton("AntiKickBtn","Anti Kick",160)
+local FixLagBtn = CreateButton("FixLagBtn","Fix Lag",210)
+
+-- Biến
+local auto = false
+
+-- Auto Beat Hits (No Miss)
+AutoBtn.MouseButton1Click:Connect(function()
+	auto = not auto
+	if auto then
+		AutoBtn.Text = "Auto Beat Hits: ON"
+		spawn(function()
+			while auto do
+				local pg = LocalPlayer:WaitForChild("PlayerGui")
+				local cam = workspace.CurrentCamera
+				local posX = cam.ViewportSize.X - 80
+				local posY = cam.ViewportSize.Y - 120
+
+				local objs = pg:GetGuiObjectsAtPosition(posX,posY)
+				for _, obj in ipairs(objs) do
+					if obj:IsA("ImageButton") or obj:IsA("TextButton") then
+						if string.find(obj.Name:lower(),"heart") or string.find(obj.Name:lower(),"beat") then
+							vInput:SendMouseButtonEvent(posX,posY,0,true,game,1)
+							task.wait(0.05)
+							vInput:SendMouseButtonEvent(posX,posY,0,false,game,1)
+							break
+						end
+					end
+				end
+				task.wait(0.1)
+			end
+		end)
+	else
+		AutoBtn.Text = "Auto Beat Hits: OFF"
+	end
+end)
+
+-- Teleport
+TPBtn.MouseButton1Click:Connect(function()
+	LocalPlayer.Character:MoveTo(Vector3.new(189.010727, -11.9921074, 153.321777))
+	if LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		LocalPlayer.Character.HumanoidRootPart.CFrame =
+			CFrame.new(189.010727, -11.9921074, 153.321777, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+	end
+end)
+
+-- Remove Loading
+RemoveBtn.MouseButton1Click:Connect(function()
+	local pg = LocalPlayer:WaitForChild("PlayerGui")
+	for _,v in pairs(pg:GetChildren()) do
+		if v:IsA("ScreenGui") and string.find(v.Name:lower(),"loading") then
+			v:Destroy()
+		end
+	end
 end)
 
 -- Anti Kick
 AntiKickBtn.MouseButton1Click:Connect(function()
-    antiKick = not antiKick
-    AntiKickBtn.Text = antiKick and "Anti Kick: ON" or "Anti Kick: OFF"
-    if antiKick then
-        LocalPlayer.Idled:Connect(function()
-            vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-            task.wait(1)
-            vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-        end)
-    end
+	AntiKickBtn.Text = "Anti Kick: ON"
+	for _,conn in ipairs(getconnections(LocalPlayer.Kicked)) do
+		conn:Disable()
+	end
+	hookmetamethod(game,"__namecall",function(self,...)
+		local method = getnamecallmethod()
+		if method == "Kick" or method == "kick" then
+			return nil
+		end
+		return hookmetamethod(game,"__namecall",function() end)(self,...)
+	end)
 end)
 
--- TP CFrame
-TPBtn.MouseButton1Click:Connect(function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame =
-            CFrame.new(189.010727, -11.9921074, 153.321777, -1, 0, 0, 0, 1, 0, 0, 0, -1)
-    end
+-- Fix Lag
+FixLagBtn.MouseButton1Click:Connect(function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	workspace.FallenPartsDestroyHeight = -5000
+	-- Tắt shadow + hiệu ứng
+	for _, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Part") or v:IsA("UnionOperation") or v:IsA("MeshPart") then
+			v.Material = Enum.Material.SmoothPlastic
+			v.Reflectance = 0
+		end
+		if v:IsA("Decal") or v:IsA("Texture") then
+			v:Destroy()
+		end
+		if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+			v.Enabled = false
+		end
+	end
+	FixLagBtn.Text = "Lag Fixed!"
+end)
+
+-- Anti AFK
+local vu = game:GetService("VirtualUser")
+LocalPlayer.Idled:Connect(function()
+	vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+	task.wait(1)
+	vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
 end)
